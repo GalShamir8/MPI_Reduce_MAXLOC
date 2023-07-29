@@ -21,18 +21,16 @@ void masterProcess(int rank, int numOfProc, int input, double epsilon)
   for (int chunk = chunkSize; chunk <= input; chunk += chunkSize)
   {
     // support left over in case that input not diveded by numOfProc
-    if (lastIteration(chunk, chunkSize, input))
-    {
-      chunkSize += (input % numOfProc);
-    }
-
-    sendPayload(chunk, chunkSize, epsilon, staticProcessType, chunk / chunkSize);
+    if (lastIteration(chunk, chunkSize, input)) 
+      sendPayload(chunk, chunkSize + (input % numOfProc), epsilon, staticProcessType, chunk / chunkSize);
+    else
+      sendPayload(chunk, chunkSize, epsilon, staticProcessType, chunk / chunkSize);
   }
   MPI_Reduce(localMax, result, 1, MPI_2INT, MPI_MAXLOC, ROOT_PROCESS_RANK, MPI_COMM_WORLD);
-  printf(
-      "[static] number requiring max number of iterations: %d. (number of iterations: %d)\n",
-      result[1],
-      result[0]);
+  printf("[static] number requiring max number of iterations: %d. (number of iterations: %d)\n",
+    result[1],
+    result[0]
+  );
   MPI_Type_free(&staticProcessType);
 }
 

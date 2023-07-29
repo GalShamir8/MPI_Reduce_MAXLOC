@@ -7,12 +7,6 @@ typedef struct
   double epsilon;
 } StaticProcessType;
 
-typedef struct
-{
-  double max;
-  int iterations;    
-} Result;
-
 void process(int rank, int numOfProc, int input, double epsilon);
 
 void create_type(MPI_Datatype *staticProcessType);
