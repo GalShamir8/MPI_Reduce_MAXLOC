@@ -11,60 +11,6 @@ int main(int argc, char **argv)
   return 0;
 }
 
-// void process(int rank, int numOfProc, int input, double epsilon)
-// {
-//   MPI_Datatype staticProcessType;
-//   create_type(&staticProcessType);
-//   Result sendbuf;
-//   Result recvbuf;
-//   if (rank == ROOT_PROCESS_RANK)
-//   {
-//     printf("In root rank process\n");
-//     int chunkSize = input / numOfProc;
-
-//     for (int chunk = chunkSize; chunk <= input; chunk += chunkSize)
-//     {
-//       // support left over in case that input not diveded by numOfProc
-//       if (lastIteration(chunk, chunkSize, input)) { chunkSize += (input % numOfProc); };
-
-//       sendPayload(chunk, chunkSize, epsilon, staticProcessType, chunk / chunkSize);
-//     }
-//     MPI_Reduce(&sendbuf, &recvbuf, 1, MPI_DOUBLE_INT, MPI_MAXLOC, ROOT_PROCESS_RANK, MPI_COMM_WORLD);
-//     printf(
-//       "number requiring max number of iterations: %f. (number of iterations: %d)\n",
-//       recvbuf.max,
-//       recvbuf.iterations
-//     );
-//   } else
-//   {
-//     printf("In rank: %d process\n", rank);
-//     StaticProcessType receivedBuffer;
-//     double heronResult;
-
-//     MPI_Recv(
-//       &receivedBuffer,
-//       1,
-//       staticProcessType,
-//       ROOT_PROCESS_RANK,
-//       ROOT_PROCESS_RANK,
-//       MPI_COMM_WORLD,
-//       MPI_STATUS_IGNORE
-//     );
-//     printf(
-//       "rank: %d recived message input: %d, chunk size: %d, epsilon: %f\n",
-//       rank, receivedBuffer.input, receivedBuffer.chunkSize, receivedBuffer.epsilon
-//     );
-//     for (int n = (receivedBuffer.input - receivedBuffer.chunkSize + 1); n <= receivedBuffer.input; n++)
-//     {
-//       heronResult = heron(n, receivedBuffer.epsilon, &sendbuf.iterations);
-//       printf("heron(%d) result: %f, %d\n",n, heronResult, sendbuf.iterations);
-//       sendbuf.max = heronResult;
-//       MPI_Reduce(&sendbuf, &recvbuf, 1, MPI_DOUBLE_INT, MPI_MAXLOC, ROOT_PROCESS_RANK, MPI_COMM_WORLD);
-//     }
-//   }
-//   MPI_Type_free(&staticProcessType);
-// }
-
 void masterProcess(int rank, int numOfProc, int input, double epsilon)
 {
   MPI_Datatype staticProcessType;
@@ -84,7 +30,7 @@ void masterProcess(int rank, int numOfProc, int input, double epsilon)
   }
   MPI_Reduce(localMax, result, 1, MPI_2INT, MPI_MAXLOC, ROOT_PROCESS_RANK, MPI_COMM_WORLD);
   printf(
-      "number requiring max number of iterations: %d. (number of iterations: %d)\n",
+      "[static] number requiring max number of iterations: %d. (number of iterations: %d)\n",
       result[1],
       result[0]);
   MPI_Type_free(&staticProcessType);
