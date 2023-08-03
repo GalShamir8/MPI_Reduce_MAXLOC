@@ -2,24 +2,22 @@
 
 const int MIN_NUM_OF_PROC = 2;
 const int DEFAULT_INPUT = 100;
+const int DEFAULT_CHUNK_SIZE = 10;
 const int ROOT_PROCESS_RANK = 0;
 const double DEFAULT_EPSILON = 0.01;
-
-/*
-  Example
-*/
-// int main(int argc, char **argv)
-// {
-//   int rank;
-//   int numOfProc;
-//   init(&argc, &argv, &numOfProc, &rank);
-//   printf("hello from %d out of %d processes\n", rank, numOfProc);
-// }
 
 void init(int *argc, char **argv, int *numOfProc, int *rank, int *input, double *epsilon)
 {
   mpiInit(argc, argv, numOfProc, rank);
   setInputs(input, epsilon, argc, argv);
+  if (*numOfProc < MIN_NUM_OF_PROC)
+    MPI_Abort(MPI_COMM_WORLD, 1);
+}
+
+void dinit(int *argc, char **argv, int *numOfProc, int *rank, int *input, double *epsilon, int *chunkSize)
+{
+  mpiInit(argc, argv, numOfProc, rank);
+  dsetInputs(input, epsilon, chunkSize, argc, argv);
   if (*numOfProc < MIN_NUM_OF_PROC)
     MPI_Abort(MPI_COMM_WORLD, 1);
 }
@@ -42,6 +40,22 @@ void setInputs(int *input, double *epsilon, int *argc, char **argv)
 
   *input = atoi(argv[1]);
   *epsilon = atof(argv[2]);
+  if (*epsilon > 1 || *epsilon < 0) *epsilon = DEFAULT_EPSILON;
+}
+
+void dsetInputs(int *input, double *epsilon, int *chunkSize, int *argc, char **argv)
+{
+  if (*argc < 3)
+  {
+    *input = DEFAULT_INPUT;
+    *epsilon = DEFAULT_EPSILON;
+    *chunkSize = DEFAULT_CHUNK_SIZE;
+    return;
+  }
+
+  *input = atoi(argv[1]);
+  *epsilon = atof(argv[2]);
+  *chunkSize = atoi(argv[3]);
   if (*epsilon > 1 || *epsilon < 0) *epsilon = DEFAULT_EPSILON;
 }
 
