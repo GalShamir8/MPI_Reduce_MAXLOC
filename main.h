@@ -9,6 +9,7 @@ extern const int ROOT_PROCESS_RANK;
 
 int main(int argc, char **argv);
 void init(int *argc, char **argv, int *numOfProc, int *rank, int *input, double *epsilon);
+void initSerial(int *argc, char **argv, int *numOfProc, int *rank, int *input, double *epsilon);
 void dinit(int *argc, char **argv, int *numOfProc, int *rank, int *input, double *epsilon, int *chunkSize);
 void mpiInit(int *argc, char **argv, int *numOfProc, int *rank);
 void setInputs(int *input, double *eplsilon, int *argc, char **argv);

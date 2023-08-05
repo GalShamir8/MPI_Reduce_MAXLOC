@@ -5,7 +5,7 @@ int main(int argc, char **argv)
   int rank, numOfProc, input, chunkSize;
   double epsilon;
 
-  dinit(&argc, argv, &numOfProc, &rank, &input, &epsilon, &chunkSize);
+  dinit(&argc, argv, &numOfProc, &rank, &input, &epsilon, &chunkSize);	
   process(rank, numOfProc - 1, input, epsilon, chunkSize);
   MPI_Finalize();
   return 0;
@@ -18,41 +18,45 @@ void masterProcess(int rank, int numOfProc, int input, double epsilon, int chunk
   create_type(&staticProcessType);
   int result[2] = {-3, -3};
   int localMax[2] = {-3, -3};
-  int tasksDoneCount = 0, chunk = chunkSize, numOfTasks = (input / chunkSize), payload, payloadSize;
+  int tasksDoneCount = 0, chunk = chunkSize, numOfTasks = (input / chunkSize), taskSent = 0, payload, payloadSize;
 
   while(tasksDoneCount < numOfTasks)
   {
-    if ((numOfTasks - tasksDoneCount) == 1)
-    {
-      payload = input;
-      payloadSize = input - chunk;
-    }
-    else
-    {
-      payload = chunk;
-      payloadSize = chunkSize;
-    }
-    
-    if ((chunk / chunkSize) > numOfProc)
-    {
+    if (taskSent == numOfTasks){
       int recevied;
       MPI_Recv(&recevied, 0, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
       tasksDoneCount++;
-      chunk += chunkSize;
-      sendPayload(payload, payloadSize, epsilon, staticProcessType, status.MPI_SOURCE, WORK);
-    } else {
-      sendPayload(payload, payloadSize, epsilon, staticProcessType, chunk/chunkSize, WORK);
-      chunk += chunkSize;
+      sendPayload(0, 0, 0.0, staticProcessType, status.MPI_SOURCE, STOP);
+    } else
+    {
+      if ((numOfTasks - tasksDoneCount) == 1)
+      {
+        payload = input;
+        payloadSize = input - chunk;
+      }
+      else
+      {
+        payload = chunk;
+        payloadSize = chunkSize;
+      }
+      
+      if ((chunk / chunkSize) > numOfProc)
+      {
+        int recevied;
+        MPI_Recv(&recevied, 0, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        tasksDoneCount++;
+        chunk += chunkSize;
+        sendPayload(payload, payloadSize, epsilon, staticProcessType, status.MPI_SOURCE, WORK);
+        taskSent++;
+      } else {
+        sendPayload(payload, payloadSize, epsilon, staticProcessType, chunk/chunkSize, WORK);
+        taskSent++;
+        chunk += chunkSize;
+      }
     }
-  }
-  for (int rank = 1; rank <= numOfProc; rank++)
-  {
-    printf("notify work is done worker %d\n", rank);
-    sendPayload(0, 0, 0.0, staticProcessType, rank, STOP);
   }
 
   MPI_Reduce(localMax, result, 1, MPI_2INT, MPI_MAXLOC, ROOT_PROCESS_RANK, MPI_COMM_WORLD);
-  printf("after master reducen");
   printf("[dynamic] number requiring max number of iterations: %d. (number of iterations: %d)\n",
          result[1],
          result[0]);
@@ -82,9 +86,6 @@ void workerProcess(int rank)
     );
 
     tag = status.MPI_TAG;
-    printf("rank: %d, recevied message payload input: %d chunk size: %d epsilon: %f tag %d\n",
-     rank, receivedBuffer.input, receivedBuffer.chunkSize, receivedBuffer.epsilon, tag);    
-
     if (tag == WORK)
     {
       for (int n = (receivedBuffer.input - receivedBuffer.chunkSize + 1); n <= receivedBuffer.input; n++)
@@ -97,21 +98,22 @@ void workerProcess(int rank)
           localMax[1] = n;
         }
       }
-      printf("rank: %d notify master for finish input: %d processing\n", rank, receivedBuffer.input);
       MPI_Send(0, 0, MPI_INT, ROOT_PROCESS_RANK, STOP, MPI_COMM_WORLD);
     }
   } while (tag != STOP);
 
-  printf("rank: %d sent to reduce: [%d,%d] processing\n", rank, localMax[0], localMax[1]);
   MPI_Reduce(localMax, result, 1, MPI_2INT, MPI_MAXLOC, ROOT_PROCESS_RANK, MPI_COMM_WORLD);
   MPI_Type_free(&staticProcessType);
-  printf("rank %d finished work\n", rank);
 }
 
 void process(int rank, int numOfProc, int input, double epsilon, int chunkSize)
 {
   if (rank == ROOT_PROCESS_RANK)
+  {
+    double start = MPI_Wtime();
     masterProcess(rank, numOfProc, input, epsilon, chunkSize);
+    printf("Runtime: %lf\n", MPI_Wtime() - start);
+  }
   else
     workerProcess(rank);
 }
@@ -146,5 +148,4 @@ void sendPayload(int input, int chunkSize, double epsilon, MPI_Datatype staticPr
     tag,
     MPI_COMM_WORLD
   );
-  printf("Sent payload %d %f to rank: %d\n", input, epsilon, target);
 }

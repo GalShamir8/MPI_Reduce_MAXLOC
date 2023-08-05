@@ -5,8 +5,10 @@ int main(int argc, char **argv)
   int rank, numOfProc, input;
   double epsilon;
 
-  init(&argc, argv, &numOfProc, &rank, &input, &epsilon);
+  initSerial(&argc, argv, &numOfProc, &rank, &input, &epsilon);
+  double start = MPI_Wtime();
   process(input, epsilon);
+  printf("Runtime: %lf\n",MPI_Wtime() - start);
   MPI_Finalize();
   return 0;
 }

@@ -14,6 +14,12 @@ void init(int *argc, char **argv, int *numOfProc, int *rank, int *input, double 
     MPI_Abort(MPI_COMM_WORLD, 1);
 }
 
+void initSerial(int *argc, char **argv, int *numOfProc, int *rank, int *input, double *epsilon)
+{
+  mpiInit(argc, argv, numOfProc, rank);
+  setInputs(input, epsilon, argc, argv);
+}
+
 void dinit(int *argc, char **argv, int *numOfProc, int *rank, int *input, double *epsilon, int *chunkSize)
 {
   mpiInit(argc, argv, numOfProc, rank);

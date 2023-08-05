@@ -71,7 +71,11 @@ void workerProcess(int rank)
 void process(int rank, int numOfProc, int input, double epsilon)
 {
   if (rank == ROOT_PROCESS_RANK)
+  {
+    double start = MPI_Wtime();
     masterProcess(rank, numOfProc, input, epsilon);
+    printf("Runtime: %lf\n",MPI_Wtime() - start);
+  }
   else
     workerProcess(rank);
 }
