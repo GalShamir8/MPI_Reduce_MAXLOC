@@ -15,7 +15,7 @@
 #### Version 2 - static partitions
 [image](stat.png)
 
-### Version 3 - dynamic partitions
+#### Version 3 - dynamic partitions
 [image](dyn.png)
 
 
