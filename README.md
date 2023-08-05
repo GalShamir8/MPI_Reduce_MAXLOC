@@ -17,3 +17,7 @@
 
 ### Version 3 - dynamic partitions
 [image](dyn.png)
+
+
+### Conclusion
+For big numbers the dynamic both static versions will give better results than the sequential, duo to memory & resource allocations required for multi proccesing in parallel
