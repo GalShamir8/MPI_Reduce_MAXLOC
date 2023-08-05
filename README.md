@@ -20,4 +20,4 @@
 
 
 ### Conclusion
-For big numbers the dynamic both static versions will give better results than the sequential, duo to memory & resource allocations required for multi proccesing in parallel
+For big numbers the dynamic, static versions will give better results than the sequential, duo to memory & resource allocations required for multi proccesing in parallel
